@@ -1,9 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { Button } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  TextField,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { Lock, Mail, Visibility, VisibilityOff } from "@mui/icons-material";
 
 function Login() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleTogglePassword = () => setShowPassword((prev) => !prev);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Login:", { email, password });
+  };
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const loginHandle = () => {
@@ -11,11 +31,121 @@ function Login() {
     navigate("/", { replace: true });
   };
   return (
-    <div className="p-10">
-      <p>Login page</p>
-      <Button variant="contained" onClick={loginHandle}>
-        Enter
-      </Button>
+    <div className="relative bg-[url('/login.jpg')] bg-cover bg-center h-screen flex items-center justify-center">
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(86,46,172,0.6),rgba(148,136,8,0.413))]"></div>
+      <Paper
+        elevation={4}
+        sx={{ borderRadius: 3 }}
+        className="grid bg-primary-200 grid-cols-2 gap-x-5 w-[60%]  py-10 px-5 rounded-lg z-10"
+      >
+        <div className="">
+          <img src="/login2.jpg" alt="" />
+        </div>
+
+        <div>
+          <Paper
+            elevation={4}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              width: "100%",
+              height: "100%",
+              bgcolor: "background.paper",
+            }}
+            className="flex flex-col justify-center"
+          >
+            <Link
+              variant="h5"
+              align="center"
+              sx={{ mb: 3, fontWeight: "bold", color: "primary.main" }}
+            >
+              Entrar na conta
+            </Link>
+
+            <Box component="form" onSubmit={handleSubmit}>
+              {/* Campo de Email */}
+              <TextField
+                label="Email"
+                variant="outlined"
+                fullWidth
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Mail color="action" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              {/* Campo de Senha */}
+              <TextField
+                label="Senha"
+                variant="outlined"
+                fullWidth
+                required
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleTogglePassword} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              {/* Botão */}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  mt: 3,
+                  py: 1.2,
+                  borderRadius: 2,
+                  fontWeight: "bold",
+                }}
+              >
+                Entrar
+              </Button>
+            </Box>
+
+            {/* Link extra */}
+            <Link
+              variant="body2"
+              align="center"
+              sx={{ mt: 2, color: "text.secondary" }}
+            >
+              Esqueceu sua senha?
+            </Link>
+            <Link
+              href="/register"
+              variant="body2"
+              align="center"
+              sx={{ mt: 2, color: "text.primary" }}
+            >
+              Não tem uma conta? Cadastre-se
+            </Link>
+          </Paper>
+        </div>
+      </Paper>
     </div>
   );
 }

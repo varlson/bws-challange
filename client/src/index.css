@@ -1,1 +1,122 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-info: var(--info);
+  --color-success: var(--success);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-primary-50: #faf6fe;
+  --color-primary-100: #f2eafd;
+  --color-primary-200: #e7d8fc;
+  --color-primary-300: #d5b9f9;
+  --color-primary-400: #bb8df3;
+  --color-primary-500: #a161eb;
+  --color-primary-600: #8a41dc;
+  --color-primary-700: #762fc1;
+  --color-primary-800: #642b9e;
+  --color-primary-900: #552583;
+  --color-primary-950: #360e5d;
+
+  --color-secondary-50: #fffdea;
+  --color-secondary-100: #fff9c5;
+  --color-secondary-200: #fff386;
+  --color-secondary-300: #ffe746;
+  --color-secondary-400: #ffd71c;
+  --color-secondary-500: #feb602;
+  --color-secondary-600: #e18b00;
+  --color-secondary-700: #bb6202;
+  --color-secondary-800: #974b09;
+  --color-secondary-900: #7c3e0b;
+  --color-secondary-950: #481f00;
+
+  --color-off-white-50: #f7f7f7;
+  --color-off-white-100: #ededed;
+  --color-off-white-200: #dfdfdf;
+  --color-off-white-300: #c8c8c8;
+  --color-off-white-400: #adadad;
+  --color-off-white-500: #999999;
+  --color-off-white-600: #888888;
+  --color-off-white-700: #7b7b7b;
+  --color-off-white-800: #676767;
+  --color-off-white-900: #545454;
+  --color-off-white-950: #363636;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Base */
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+
+  /* Cores principais */
+  --primary: #552583; /* Roxo Lakers */
+  --primary-foreground: #ffffff;
+
+  --secondary: #feb602; /* Amarelo dourado */
+  --secondary-foreground: #1a1a1a;
+
+  /* Utilitárias */
+  --muted: #f4f4f5;
+  --muted-foreground: #6b7280;
+
+  --destructive: #dc2626;
+  --info: #2563eb;
+  --success: #16a34a;
+
+  /* Sugestões extras */
+  --warning: #f59e0b;
+  --border: #e5e7eb;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+}
+
+.dark {
+  /* Base */
+  --background: #0f172a; /* azul bem escuro, agradável para dark mode */
+  --foreground: #f8fafc; /* quase branco */
+
+  /* Cores principais */
+  --primary: #7d4ccf; /* versão mais clara do roxo p/ destacar no fundo escuro */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f5c542; /* dourado suave */
+  --secondary-foreground: #1a1a1a;
+
+  /* Utilitárias */
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --destructive: #f87171;
+  --info: #60a5fa;
+  --success: #4ade80;
+
+  /* Extras */
+  --warning: #facc15;
+  --border: #334155;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+}

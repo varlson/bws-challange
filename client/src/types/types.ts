@@ -3,6 +3,8 @@ import type { PaletteMode } from "@mui/material";
 // Tipo de usuário
 export interface User {
   name: string;
+  usermame: string;
+  avatarUrl?: string;
 }
 
 export interface AuthContextType {

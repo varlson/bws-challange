@@ -1,6 +1,8 @@
 import { Container } from "@mui/material";
 import React from "react";
 import { useAuth } from "../../../hooks/useAuth";
+import Logo from "../../ui/logo";
+import Avatar from "../../ui/avatar";
 
 function Navbar() {
   const { login, logout, user } = useAuth();
@@ -12,10 +14,15 @@ function Navbar() {
     }
   };
   return (
-    <Container maxWidth={false} className="bg-red-500 h-[60px]">
-      <div onClick={loginLogoutHandle}>
-        {user ? <p>Logout</p> : <p>Login</p>}
-      </div>
+    <Container
+      maxWidth={false}
+      sx={{ bgcolor: "background.paper" }}
+      className="flex fixed z-50 justify-between items-center hadow-xl h-[70px]"
+    >
+      <Logo />
+      {/* <div onClick={loginLogoutHandle}> */}
+      <Avatar />
+      {/* </div> */}
     </Container>
   );
 }
