@@ -13,7 +13,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "authenixServerApp",
+    "authenixApp",
     "rest_framework",
 ]
 
@@ -68,7 +68,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'authenixServerApp.User'
+AUTH_USER_MODEL = 'authenixApp.User'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
-from authenixServerApp.views import CustomTokenObtainPairView, Verify2FAView, UserViewSet
+from authenixApp.views import CustomTokenObtainPairView, Verify2FAView, UserViewSet
 from rest_framework import routers
 
 router = routers.DefaultRouter()
