@@ -21,24 +21,25 @@ class CustomUserChangeForm(UserChangeForm):
         model = User
         fields = '__all__'
 
-
+# admin.py
 class UserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
 
     list_display = (
         'id', 'username', 'email', 'role', 'company',
-        'is_active', 'is_email_verified', 'created_at'
+        'is_active', 'is_email_verified', 'is_two_factor_verified', 'created_at'
     )
     search_fields = ('username', 'email')
-    list_filter = ('is_active', 'is_email_verified', 'role__access_level', 'company__name')
+    list_filter = ('is_active', 'is_email_verified', 'is_two_factor_verified', 'role__access_level', 'company__name')
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'phone', 'profile_picture')}),
         ('Empresa e Papel', {'fields': ('company', 'role')}),
-        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Verificações', {'fields': ('is_email_verified', 'is_two_factor_verified')}),
+        ('Códigos de Segurança', {'fields': ('two_factor_code', 'two_factor_expires_at', 'reg_confirmation_code', 'reg_confirmation_expires_at', 'locked_until')}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Datas Importantes', {'fields': ('last_login', 'date_joined', 'created_at', 'updated_at')}),
     )
 
@@ -52,7 +53,8 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
-    readonly_fields = ('created_at', 'updated_at', 'last_login', 'date_joined')
+    readonly_fields = ('created_at', 'updated_at', 'last_login', 'date_joined', 
+                      'two_factor_expires_at', 'reg_confirmation_expires_at', 'locked_until')
     ordering = ('-created_at',)
 
 

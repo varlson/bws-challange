@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, type FormEvent } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import {
   Box,
@@ -11,24 +11,48 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Lock, Mail, Visibility, VisibilityOff } from "@mui/icons-material";
+import { authenticate } from "../../services/auth/login";
+import axios from "axios";
+import LoginCodeConfirmation from "../../components/ui/loginCodeConfirmation";
+import useForms from "../../hooks/useForms";
+import FeedBackSnackBar from "../../components/ui/errorHandler";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const {
+    loginModalConfim,
+    credential,
+    handleCredentialChange,
+    erroeMessage,
+    handleErrorMessageChange,
+    snackBarControl,
+  } = useForms();
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+    setIsLoading(true);
+    // loginModalConfim.handleClickOpen();
+    const response = await authenticate(credential);
+    console.log("response ", response);
+    setIsLoading(false);
+    if (response.success) {
+      loginModalConfim.handleClickOpen();
+    } else {
+      handleErrorMessageChange(response.error);
+      snackBarControl.openSnackBarHandle();
+    }
   };
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
   const loginHandle = () => {
     login("Suleimane Ducure");
-    navigate("/", { replace: true });
+    // navigate("/", { replace: true });
   };
   return (
     <div className="relative bg-[url('/login.jpg')] bg-cover bg-center h-screen flex items-center justify-center">
@@ -67,10 +91,12 @@ function Login() {
               <TextField
                 label="Email"
                 variant="outlined"
+                name="email"
+                error={!!erroeMessage}
                 fullWidth
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={credential.email}
+                onChange={handleCredentialChange}
                 margin="normal"
                 slotProps={{
                   input: {
@@ -87,11 +113,13 @@ function Login() {
               <TextField
                 label="Senha"
                 variant="outlined"
+                name="password"
                 fullWidth
                 required
+                error={!!erroeMessage}
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={credential.password}
+                onChange={handleCredentialChange}
                 margin="normal"
                 slotProps={{
                   input: {
@@ -113,6 +141,7 @@ function Login() {
 
               {/* Botão */}
               <Button
+                loading={isLoading}
                 type="submit"
                 variant="contained"
                 fullWidth
@@ -146,6 +175,13 @@ function Login() {
           </Paper>
         </div>
       </Paper>
+      <LoginCodeConfirmation email={credential.email} {...loginModalConfim} />
+      <FeedBackSnackBar
+        handleClose={snackBarControl.closeSnackBarHandle}
+        severity="error"
+        open={snackBarControl.openSnack}
+        message={erroeMessage}
+      />
     </div>
   );
 }

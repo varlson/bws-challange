@@ -6,6 +6,25 @@ SECRET_KEY = 'django-insecure-g5jdybj#$(!182nh_c0laayl9dtuq-ph&ohku()ft&hii!l01#
 DEBUG = True
 ALLOWED_HOSTS = []
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # seu frontend React
+    "https://seusite.com",    # produção
+]
+CORS_ALLOW_CREDENTIALS = True  # 🔑 permite envio de cookies
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -15,9 +34,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "authenixApp",
     "rest_framework",
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,3 +105,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
+
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False  # precisa ser acessível no frontend para envio via header
+CSRF_COOKIE_SAMESITE = "Strict"  # ou 'Lax' se quiser permitir refresh vindo de subdomínio
+CSRF_COOKIE_SECURE = False  # coloque True em produção (HTTPS)

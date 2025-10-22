@@ -3,18 +3,19 @@ import type { User } from "../types/types";
 import { AuthContext } from "./AppContexts";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>({
+    name: "Varlson",
+    usermame: "varlson",
+  });
 
-  // ⚙️ useCallback memoriza as funções (só recria quando necessário)
-  const login = useCallback((username: string) => {
-    setUser({ name: username });
+  const login = useCallback((username: string, name: string) => {
+    setUser({ name: name, usermame: username });
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
   }, []);
 
-  // 💾 useMemo memoriza o objeto `value`
   const value = useMemo(
     () => ({
       user,

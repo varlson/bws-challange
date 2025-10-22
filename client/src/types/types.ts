@@ -9,7 +9,7 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
-  login: (username: string) => void;
+  login: (username: string, name: string) => void;
   logout: () => void;
 }
 
@@ -17,3 +17,8 @@ export interface ThemeContextType {
   mode: PaletteMode;
   toggleTheme: () => void;
 }
+
+export type Credentials = {
+  email: string;
+  password: string;
+};

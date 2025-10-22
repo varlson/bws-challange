@@ -1,8 +1,13 @@
 import { Button } from "@mui/material";
 import React from "react";
 import { Link } from "react-router-dom";
+import { GetMe } from "../../services/users/users.services";
 
 function Dashboard() {
+  const listMe = async () => {
+    const response = await GetMe();
+    console.log(response);
+  };
   return (
     <div>
       <p>Dashboard page</p>
@@ -15,6 +20,8 @@ function Dashboard() {
           tempora dolor obcaecati voluptate minima architecto alias aut expedita
           in labore.
         </p>
+
+        <button onClick={listMe}>setValue</button>
       </div>
     </div>
   );
