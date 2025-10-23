@@ -1,6 +1,15 @@
 from pathlib import Path
-
+import os
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+ENV = os.getenv("DJANGO_ENV", "dev") 
+PROD_FRONT_DOMAIN = "https://seusite.com"
+DEV_FRONT_DOMAIN = "http://localhost:5173"
+FRONTEND_DOMAIN = DEV_FRONT_DOMAIN if ENV == "dev" else PROD_FRONT_DOMAIN
+
+print(f'Rodando em {ENV}')
+
 
 SECRET_KEY = 'django-insecure-g5jdybj#$(!182nh_c0laayl9dtuq-ph&ohku()ft&hii!l01#'
 DEBUG = True

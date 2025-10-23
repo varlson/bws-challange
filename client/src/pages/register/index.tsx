@@ -1,7 +1,9 @@
 import React, { useEffect, useState, type ChangeEvent } from "react";
 import {
+  Alert,
   Box,
   Button,
+  CircularProgress,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -21,82 +23,88 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import type { CreateUserRequest } from "../../services/users/users.models";
-import { listCompanies } from "../../services/company/company.services";
 import type { CompanyResponse } from "../../services/company/company.model";
-import { CreateUser } from "../../services/users/users.services";
 import FeedBackSnackBar from "../../components/ui/errorHandler";
 import useForms from "../../hooks/useForms";
-import CodeConfirmation from "../../components/ui/loginCodeConfirmation";
+import Modal from "../../components/ui/modal";
+import useHooks from "../../hooks/useHooks";
+import { CreateUser } from "../../services/users/users.services";
 
 function Register() {
-  const [user, setUser] = useState<CreateUserRequest>({
-    company_id: "",
-    email: "",
-    first_name: "",
-    last_name: "",
-    password: "",
-    phone: "",
-    profile_picture: "",
-    username: "",
-    password_confirmation: "",
-  });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState<boolean>(true);
+  const [current, setCurrent] = useState<"loading" | "feedback">("loading");
+  // const [isLoadingCompanies, setIsLoadingCompanies] = useState<boolean>(true);
   const [createAccountLoading, setCreateAccountLoading] =
     useState<boolean>(false);
-  const [companies, setCompanies] = useState<CompanyResponse[]>([]);
 
   const {
-    snackBarControl,
-    erroeMessage,
-    handleErrorMessageChange,
-    loginModalConfim,
-  } = useForms();
+    loadingController,
+    user,
+    setUserHandle,
+    setUser,
+    companies,
+    loadCompanies,
+    modalControl,
+    modalState,
+  } = useHooks();
+
+  useEffect(() => {
+    loadCompanies();
+  }, [loadCompanies]);
+
+  const navigate = useNavigate();
+
+  const navigateToLoginPage = () => {
+    navigate("/login", { replace: true });
+  };
+
+  const { snackBarControl, erroeMessage, handleErrorMessageChange } =
+    useForms();
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      const response = await listCompanies();
-      if (response.success) {
-        setCompanies(response.data);
-      }
-    };
-    fetchCompanies();
-  }, []);
+  const modalParams = {
+    loading: {
+      title: "Por favor aguarde!",
+      children: (
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <CircularProgress />
+        </Box>
+      ),
+      state: loadingController.isLoading,
+      stateControl: modalControl,
+    },
+    feedback: {
+      confirmLabel: "Fazer login",
+      title:
+        "Para continuar, confirme sua conta com código enviado para seu email",
+      children: (
+        <Alert variant="filled" severity="success">
+          Sua conta foi criada com sucesso!
+        </Alert>
+      ),
 
-  const setUserHandle = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-
-    setUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+      state: modalState,
+      stateControl: modalControl,
+      oncloseAction: navigateToLoginPage,
+    },
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrent("feedback");
     setCreateAccountLoading(true);
     const resp = await CreateUser(user);
-    console.log({ resp });
 
     if (!resp.success) {
       handleErrorMessageChange(resp.error);
       snackBarControl.openSnackBarHandle();
     } else {
-      loginModalConfim.handleClickOpen();
+      modalControl("open");
     }
 
     setCreateAccountLoading(false);
   };
-
-  // const navigate = useNavigate();
-  // const loginHandle = () => {
-  //   navigate("/", { replace: true });
-  // };
 
   return (
     <div className="relative bg-[url('/login.jpg')] bg-cover bg-center h-screen flex items-center justify-center">
@@ -104,9 +112,9 @@ function Register() {
       <Paper
         elevation={4}
         sx={{ borderRadius: 3 }}
-        className="flex bg-primary-200  gap-x-5 w-[75%]  py-10 px-5 rounded-lg z-10"
+        className="flex flex-col lg:flex-row bg-primary-200  gap-x-5 w-full lg:w-[75%]  py-10 px-5 rounded-lg z-10"
       >
-        <div className="bg-red-300 w-[35%] h-full">
+        <div className="bg-red-300 w-full lg:w-[35%] h-full">
           <img
             className=" w-full object-cover"
             src="/crateAccount.jpg"
@@ -135,7 +143,7 @@ function Register() {
             </Link>
 
             <Box component="form" onSubmit={handleSubmit}>
-              <div className="flex gap-x-3">
+              <div className="md:flex gap-x-3">
                 <TextField
                   label="Nome"
                   variant="outlined"
@@ -177,7 +185,7 @@ function Register() {
                 />
               </div>
 
-              <div className="flex gap-x-3">
+              <div className="md:flex gap-x-3">
                 <TextField
                   label="Email"
                   variant="outlined"
@@ -241,7 +249,8 @@ function Register() {
 
               <div>
                 <InputLabel id="demo-simple-select-label">Empresa</InputLabel>
-                {companies.length > 0 && (
+
+                {companies && (
                   <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
@@ -271,7 +280,7 @@ function Register() {
                 )}
               </div>
 
-              <div className="flex gap-x-3">
+              <div className="md:flex gap-x-3">
                 <TextField
                   label="Senha"
                   variant="outlined"
@@ -292,7 +301,7 @@ function Register() {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={handleTogglePassword} edge="end">
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <Visibility /> : <VisibilityOff />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -319,7 +328,7 @@ function Register() {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton onClick={handleTogglePassword} edge="end">
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <Visibility /> : <VisibilityOff />}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -328,7 +337,6 @@ function Register() {
                 />
               </div>
 
-              {/* Botão */}
               <Button
                 type="submit"
                 variant="contained"
@@ -362,12 +370,8 @@ function Register() {
         open={snackBarControl.openSnack}
         message={erroeMessage}
       />
-      <CodeConfirmation
-        goTo="/login"
-        email={user.email}
-        {...loginModalConfim}
-        isAccoutConfirmation={true}
-      />
+
+      <Modal {...modalParams[current]} />
     </div>
   );
 }

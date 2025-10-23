@@ -36,3 +36,13 @@ export const codeConfirmation = async (
     },
   });
 };
+
+export const accountVerification = async (token: string) => {
+  return await MakeRequest<{ detail: string }>({
+    url: `confirm-email/${token}`,
+  });
+};
+
+// export  const resendCodehandler = await () => {
+//   return await MakeRequest<>({url})
+// };

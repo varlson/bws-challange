@@ -1,6 +1,8 @@
+from django_ratelimit.decorators import ratelimit
 from authenixApp.serializers import UserSerializer, RoleSerializer, CompanySerializer
 from authenixApp.models import User, Role, Company
 from rest_framework import viewsets, permissions, status
+from django.utils import timezone
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.views import APIView
@@ -73,6 +75,32 @@ class GetCSRFToken(APIView):
 
 
 
+
+class ConfirmEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, token):
+        try:
+            user = User.objects.get(email_verification_token=token)
+        except User.DoesNotExist:
+            return Response({"detail": "Token inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.email_verification_expires_at < timezone.now():
+            return Response({"detail": "Token expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ Ativa o e-mail
+        user.is_email_verified = True
+        user.email_verification_token = None
+        user.email_verification_expires_at = None
+        user.save(update_fields=["is_email_verified", "email_verification_token", "email_verification_expires_at"])
+
+        return Response({
+            "detail": "E-mail verificado com sucesso. Agora você pode fazer login."
+        }, status=status.HTTP_200_OK)
+
+
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated, CanCreateUser, CanModifyUser]
@@ -95,44 +123,48 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            
-            # Gerar código de confirmação de registro (4 dígitos)
-            registration_code = user.generate_code(isTwoFactor=False)
-            
-            # Enviar e-mail de verificação
-            self.send_registration_email(user, registration_code)
-            
+
+            # ✅ Gera token único de verificação
+            token = user.generate_email_verification_token()
+
+            # ✅ Monta link de verificação
+            verification_link = f"{settings.FRONTEND_DOMAIN}/verify-email?token={token}"
+
+            # ✅ Envia e-mail com o link
+            subject = "Ative sua conta - Verificação de e-mail"
+            message = f"""
+            Olá {user.username},
+
+            Bem-vindo à nossa plataforma!
+
+            Clique no link abaixo para ativar sua conta:
+            {verification_link}
+
+            Este link expira em 1 hora.
+
+            Atenciosamente,
+            Equipe do Sistema
+            """
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+
+            # ✅ Retorna resposta ao frontend
             return Response({
-                "detail": "Conta criada com sucesso. Verifique seu e-mail para ativar sua conta.",
+                "detail": "Conta criada com sucesso. Verifique seu e-mail e clique no link para ativar sua conta.",
                 "user_id": user.id,
                 "next": "/verify-email"
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
-    # def verify_email(self, request):
-    #     """Verificação de e-mail para usuários recém-registrados"""
-    #     email = request.data.get("email")
-    #     code = request.data.get("code")
-        
-    #     print(f'Verifying email for {email} with code {code}')
 
-    #     try:
-    #         user = User.objects.get(email=email)
-    #     except User.DoesNotExist:
-    #         return Response({"detail": "Usuário não encontrado."}, 
-    #                       status=status.HTTP_404_NOT_FOUND)
 
-    #     # Usar verify_code com isTwoFactor=False para verificação de registro
-    #     if user.verify_code(code, isTwoFactor=False):
-    #         return Response({
-    #             "detail": "E-mail verificado com sucesso. Sua conta está ativa.",
-    #             "next": "/login"
-    #         })
-
-    #     return Response({"detail": "Código inválido ou expirado."}, 
-    #                   status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def verify_email(self, request):
@@ -342,7 +374,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 class Login2FAView(APIView):
     """1ª Etapa — Autentica credenciais e envia código por e-mail."""
-    
+    @method_decorator(ratelimit(key='ip', rate='5/10m', block=True))
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")

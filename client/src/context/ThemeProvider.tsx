@@ -16,7 +16,7 @@ export const ThemeContextProvider = ({
 }: ThemeContextProviderProps) => {
   const [mode, setMode] = useState<PaletteMode>(() => {
     const saved = localStorage.getItem("themeMode");
-    return (saved as PaletteMode) || "light";
+    return (saved as PaletteMode) || "dark";
   });
 
   const toggleTheme = () => {

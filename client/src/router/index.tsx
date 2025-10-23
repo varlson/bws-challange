@@ -6,6 +6,8 @@ import Account from "../pages/account";
 import NotFound from "../pages/notFound";
 import PublicRoutes from "./publicRoutes";
 import PrivateRoutes from "./privateRoutes";
+import AccountConfirmation from "../pages/accountConfirmation";
+import UserCards from "../pages/users";
 
 const router = createBrowserRouter([
   {
@@ -13,6 +15,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
+      { path: "/verify-email", element: <AccountConfirmation /> },
     ],
   },
   {
@@ -20,7 +23,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <Dashboard /> },
       { path: "/dashboard", element: <Dashboard /> },
-      { path: "/my-account", element: <Account /> },
+      { path: "/users", element: <UserCards /> },
     ],
   },
   { path: "*", element: <NotFound /> },

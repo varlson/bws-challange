@@ -9,6 +9,10 @@ function useForms() {
     password: "senha1234",
   });
 
+  const resetCredential = () => {
+    setCredential({ email: "", password: "" });
+  };
+
   const [openSnack, setOpenSnack] = useState<boolean>(false);
 
   const openSnackBarHandle = () => {
@@ -52,6 +56,7 @@ function useForms() {
 
   return {
     loginModalConfim,
+    resetCredential,
     handleCredentialChange,
     credential,
     handleErrorMessageChange,

@@ -1,37 +1,236 @@
-import { Button } from "@mui/material";
-import React from "react";
-import { Link } from "react-router-dom";
-import { GetMe } from "../../services/users/users.services";
+import React, { useState } from "react";
+import {
+  Box,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  Card,
+  CardContent,
+  LinearProgress,
+  Chip,
+  Avatar,
+  AvatarGroup,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  IconButton,
+  Toolbar,
+} from "@mui/material";
+import { MoreVert } from "@mui/icons-material";
+import { projects, recentActivities, stats } from "../../constants/data";
 
+export type ColorStatus = "Em Progresso" | "Revisão" | "Concluído";
+export type ColorPriority = "Alta" | "Média" | "Baixa";
 function Dashboard() {
-  const listMe = async () => {
-    const response = await GetMe();
-    console.log(response);
+  const getStatusColor = (status: ColorStatus) => {
+    switch (status) {
+      case "Em Progresso":
+        return "primary";
+      case "Revisão":
+        return "warning";
+      case "Concluído":
+        return "success";
+      default:
+        return "default";
+    }
   };
+
+  const getPriorityColor = (priority: ColorPriority) => {
+    switch (priority) {
+      case "Alta":
+        return "error";
+      case "Média":
+        return "warning";
+      case "Baixa":
+        return "success";
+      default:
+        return "default";
+    }
+  };
+
   return (
-    <div>
-      <p>Dashboard page</p>
-      <Button variant="contained">Contained</Button>
+    <div className="">
+      <Toolbar />
 
-      <Button
-        variant="contained"
-        onClick={() => {
-          console.log(document.cookie);
-        }}
-      >
-        token
-      </Button>
+      <Container className="w-ful " maxWidth={false}>
+        <Grid container spacing={3}>
+          {stats.map((stat, index) => (
+            <div className="w-full md:w-auto" key={index}>
+              <Card sx={{ height: "100%" }}>
+                <CardContent
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-around",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        bgcolor: stat.color,
+                        color: "white",
+                        p: 1,
+                        borderRadius: 2,
+                        display: "flex",
+                        mr: 2,
+                      }}
+                    >
+                      {<stat.icon />}
+                    </Box>
+                    <Box>
+                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                        {stat.value}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {stat.label}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </Grid>
 
-      <div className="bg-white p-14">
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem, delectus
-          voluptatibus optio in a fugiat quod. Temporibus, adipisci recusandae
-          tempora dolor obcaecati voluptate minima architecto alias aut expedita
-          in labore.
-        </p>
+        <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                Projetos Ativos
+              </Typography>
+              <Grid container spacing={2}>
+                {projects.map((project) => (
+                  <Grid item xs={12} key={project.id}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" sx={{ mb: 1 }}>
+                              {project.name}
+                            </Typography>
+                            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+                              <Chip
+                                label={project.status}
+                                size="small"
+                                color={getStatusColor(project.status)}
+                              />
+                              <Chip
+                                label={project.priority}
+                                size="small"
+                                color={getPriorityColor(project.priority)}
+                                variant="outlined"
+                              />
+                            </Box>
+                          </Box>
+                          <IconButton size="small">
+                            <MoreVert />
+                          </IconButton>
+                        </Box>
 
-        <button onClick={listMe}>setValue</button>
-      </div>
+                        <Box sx={{ mb: 2 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              mb: 1,
+                            }}
+                          >
+                            <Typography variant="body2" color="text.secondary">
+                              Progresso
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 600 }}
+                            >
+                              {project.progress}%
+                            </Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={project.progress}
+                            sx={{ height: 8, borderRadius: 5 }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <AvatarGroup max={4}>
+                            {project.team.map((member, idx) => (
+                              <Avatar
+                                key={idx}
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {member}
+                              </Avatar>
+                            ))}
+                          </AvatarGroup>
+                          <Typography variant="body2" color="text.secondary">
+                            Prazo: {project.deadline}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, height: "100%" }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                Atividades Recentes
+              </Typography>
+              <List>
+                {recentActivities.map((activity) => (
+                  <ListItem key={activity.id} sx={{ px: 0 }}>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: "primary.main" }}>
+                        {activity.user.charAt(0)}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2">
+                          <strong>{activity.user}</strong> {activity.action}{" "}
+                          <strong>{activity.task}</strong>
+                        </Typography>
+                      }
+                      secondary={activity.time}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
     </div>
   );
 }

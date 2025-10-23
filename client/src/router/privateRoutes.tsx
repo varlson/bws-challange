@@ -14,13 +14,13 @@ export default function PrivateRoutes() {
       <Navbar />
       <Box
         sx={{ bgcolor: "background.paper" }}
-        className="fixed flex flex-col items-center  top-0 bottom-0  h-screen pt-[80px] px-2 w-[100px] "
+        className="fixed flex md:flex-col z-50 md:z-0 justify-around md:justify-start items-center  md:top-0 bottom-0 h-20 md:h-screen md:pt-20 px-2 w-full md:w-[100px] "
       >
         <SideMenu label="aa" icon={<Home fontSize="inherit" />} linkto="/" />
         <SideMenu
           label="aa"
           icon={<PersonIcon fontSize="inherit" />}
-          linkto="/my-account"
+          linkto="/users"
         />
         <SideMenu
           label="aa"
@@ -28,7 +28,7 @@ export default function PrivateRoutes() {
           linkto="/my-account"
         />
       </Box>
-      <div className="ml-[100px] pt-[75px] p-4">
+      <div className="md:ml-[100px] pt-[75px] p-4">
         <Outlet />
       </div>
     </div>

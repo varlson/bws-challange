@@ -51,6 +51,10 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to="profiles/", blank=True)
     is_email_verified = models.BooleanField(default=False)
     
+    email_verification_token = models.UUIDField(blank=True, null=True)
+    email_verification_expires_at = models.DateTimeField(blank=True, null=True)
+
+    
     
     two_factor_code = models.CharField(max_length=6, blank=True, null=True)
     two_factor_expires_at = models.DateTimeField(blank=True, null=True)
@@ -69,6 +73,13 @@ class User(AbstractUser):
     def is_locked(self):
         return self.locked_until and self.locked_until > timezone.now()
 
+    def generate_email_verification_token(self):
+        """Gera token único e define expiração (1 hora)."""
+        self.email_verification_token = uuid.uuid4()
+        self.email_verification_expires_at = timezone.now() + timezone.timedelta(hours=1)
+        self.save(update_fields=["email_verification_token", "email_verification_expires_at"])
+        return self.email_verification_token
+    
     def generate_code(self, isTwoFactor: bool = True):
         """Generate a 6-digit numeric code and expiration time (e.g., 5 minutes)."""
         

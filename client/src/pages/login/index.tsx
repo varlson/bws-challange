@@ -1,5 +1,6 @@
 import React, { useState, type FormEvent } from "react";
 import {
+  Alert,
   Box,
   Button,
   IconButton,
@@ -13,6 +14,8 @@ import LoginCodeConfirmation from "../../components/ui/loginCodeConfirmation";
 import useForms from "../../hooks/useForms";
 import FeedBackSnackBar from "../../components/ui/errorHandler";
 import { useLogin } from "../../hooks/useLogin";
+import Modal from "../../components/ui/modal";
+import useHooks from "../../hooks/useHooks";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +26,10 @@ function Login() {
     erroeMessage,
     handleErrorMessageChange,
     snackBarControl,
+    resetCredential,
   } = useForms();
+
+  const { modalControl, modalState } = useHooks();
 
   const { login, isLoading } = useLogin();
 
@@ -35,6 +41,9 @@ function Login() {
     if (response.success) {
       loginModalConfim.handleClickOpen();
     } else {
+      modalControl(
+        response.error.startsWith("Você não tem permissão") ? "open" : "close"
+      );
       handleErrorMessageChange(response.error);
       snackBarControl.openSnackBarHandle();
     }
@@ -46,7 +55,7 @@ function Login() {
       <Paper
         elevation={4}
         sx={{ borderRadius: 3 }}
-        className="grid bg-primary-200 grid-cols-2 gap-x-5 w-[60%]  py-10 px-5 rounded-lg z-10"
+        className="grid bg-primary-200 md:grid-cols-2 gap-x-5 lg:w-[60%] md:[80%] w-full  py-10 px-5 rounded-lg z-10"
       >
         <div className="">
           <img src="/login2.jpg" alt="" />
@@ -165,6 +174,18 @@ function Login() {
         goTo="/"
         email={credential.email}
         {...loginModalConfim}
+      />
+      <Modal
+        children={
+          <Alert severity="error">
+            {erroeMessage + " Tenta novamente mais tarde."}
+          </Alert>
+        }
+        state={modalState}
+        stateControl={modalControl}
+        title="Conta bloqueada temporariamente"
+        confirmLabel="Ok"
+        oncloseAction={resetCredential}
       />
       <FeedBackSnackBar
         handleClose={snackBarControl.closeSnackBarHandle}
