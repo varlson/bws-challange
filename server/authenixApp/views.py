@@ -1,5 +1,5 @@
-from authenixApp.serializers import UserSerializer, RoleSerializer
-from authenixApp.models import User, Role
+from authenixApp.serializers import UserSerializer, RoleSerializer, CompanySerializer
+from authenixApp.models import User, Role, Company
 from rest_framework import viewsets, permissions, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 from .serializers import (
      UserRegistrationSerializer, UserUpdateSerializer, 
@@ -55,6 +56,7 @@ class LogoutView(APIView):
             return response
             
         except Exception as e:
+            print(e)
             return Response({
                 "detail": "Erro durante o logout."
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -108,29 +110,87 @@ class UserViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+    # def verify_email(self, request):
+    #     """Verificação de e-mail para usuários recém-registrados"""
+    #     email = request.data.get("email")
+    #     code = request.data.get("code")
+        
+    #     print(f'Verifying email for {email} with code {code}')
+
+    #     try:
+    #         user = User.objects.get(email=email)
+    #     except User.DoesNotExist:
+    #         return Response({"detail": "Usuário não encontrado."}, 
+    #                       status=status.HTTP_404_NOT_FOUND)
+
+    #     # Usar verify_code com isTwoFactor=False para verificação de registro
+    #     if user.verify_code(code, isTwoFactor=False):
+    #         return Response({
+    #             "detail": "E-mail verificado com sucesso. Sua conta está ativa.",
+    #             "next": "/login"
+    #         })
+
+    #     return Response({"detail": "Código inválido ou expirado."}, 
+    #                   status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def verify_email(self, request):
         """Verificação de e-mail para usuários recém-registrados"""
         email = request.data.get("email")
         code = request.data.get("code")
-        
+
         print(f'Verifying email for {email} with code {code}')
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({"detail": "Usuário não encontrado."}, 
-                          status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Usuário não encontrado."},
+                        status=status.HTTP_404_NOT_FOUND)
 
-        # Usar verify_code com isTwoFactor=False para verificação de registro
+    # Usar verify_code com isTwoFactor=False para verificação de registro
         if user.verify_code(code, isTwoFactor=False):
-            return Response({
-                "detail": "E-mail verificado com sucesso. Sua conta está ativa.",
-                "next": "/login"
-            })
+            # Marca o usuário como verificado, caso não esteja
+            if not user.is_email_verified:
+                user.is_email_verified = True
+                user.save()
 
-        return Response({"detail": "Código inválido ou expirado."}, 
-                      status=status.HTTP_400_BAD_REQUEST)
+            # ✅ Gera os tokens JWT
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            # ✅ Monta resposta com o access token no corpo e refresh no cookie
+            response = Response({
+                "detail": "E-mail verificado com sucesso. Login automático realizado.",
+                "access": access_token,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username
+                }
+            }, status=status.HTTP_200_OK)
+
+            # ✅ Define cookie HTTP-only com refresh token
+            response.set_cookie(
+                key='refresh_token',
+                value=str(refresh),
+                httponly=True,     # 🔒 protege contra acesso JS
+                secure=False,      # ⚠️ coloque True em produção (HTTPS)
+                samesite='Strict', # protege contra CSRF
+                max_age=7 * 24 * 60 * 60  # 7 dias
+            )
+
+            return response
+
+        return Response({"detail": "Código inválido ou expirado."},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        
+        
+        
+        
+        
+        
 
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def resend_registration_code(self, request):
@@ -271,6 +331,12 @@ class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    
+    
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.AllowAny]
 
 
 
@@ -419,7 +485,37 @@ class ResendVerificationEmailView(APIView):
             [user.email],
             fail_silently=False,
         )
-        
+
+
+
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    """
+    Versão segura de TokenRefreshView:
+    lê o refresh token do cookie HTTP-only.
+    """
+
+    serializer_class = TokenRefreshSerializer
+
+    @method_decorator(csrf_protect)  # ✅ protege com CSRF, já que usa cookie
+    def post(self, request, *args, **kwargs):
+        # Pega refresh token do cookie
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if not refresh_token:
+            return Response(
+                {"detail": "Refresh token não encontrado no cookie."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Força a inclusão no request.data
+        request.data["refresh"] = refresh_token
+
+        # Continua o fluxo normal
+        return super().post(request, *args, **kwargs)
+
+
 
 # views.py - no UserViewSet
 @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])

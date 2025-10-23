@@ -24,8 +24,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from authenixApp.views import (
-    CustomTokenObtainPairView, Verify2FAView, UserViewSet, RoleViewSet,
-    Login2FAView, GetCSRFToken
+    CustomTokenObtainPairView, Verify2FAView, UserViewSet, RoleViewSet,CompanyViewSet,
+    Login2FAView, GetCSRFToken,CookieTokenRefreshView, LogoutView
 )
 from rest_framework import routers
 from authenixApp.views import ResendVerificationEmailView
@@ -33,6 +33,7 @@ from authenixApp.views import ResendVerificationEmailView
 router = routers.DefaultRouter()
 router.register('users', UserViewSet)
 router.register('roles', RoleViewSet)
+router.register('companies', CompanyViewSet)
 
 # urlpatterns = [
 #     path('admin/', admin.site.urls),
@@ -57,8 +58,10 @@ urlpatterns = [
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/login/', Login2FAView.as_view(), name='login_2fa'),
     path('api/verify-2fa/', Verify2FAView.as_view(), name='verify_2fa'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
     path('api/get-csrf-token/', GetCSRFToken.as_view(), name='GetCSRFToken'),
+    path('api/logout/', LogoutView.as_view(), name='logOut'),
     
     # Registro e verificação
     path('api/register/', UserViewSet.as_view({'post': 'register'}), name='register'),

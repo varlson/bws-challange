@@ -28,7 +28,7 @@ class UserAdmin(BaseUserAdmin):
 
     list_display = (
         'id', 'username', 'email', 'role', 'company',
-        'is_active', 'is_email_verified', 'is_two_factor_verified', 'created_at'
+        'is_active', 'is_email_verified', 'is_two_factor_verified', 'created_at',"first_name","last_name"
     )
     search_fields = ('username', 'email')
     list_filter = ('is_active', 'is_email_verified', 'is_two_factor_verified', 'role__access_level', 'company__name')

@@ -1,96 +1,12 @@
-// import axios from "axios";
-// let accessToken: string | null = null;
-// export const setAccessToken = (token: string | null) => {
-//   accessToken = token;
-// };
-
-// export const getAccessToken = () => accessToken;
-
-// const ApiRequest = axios.create({
-//   baseURL: "http://localhost:8000/api/",
-//   // baseURL: "https://focomail-server.vercel.app/api",
-//   withCredentials: true, // IMPORTANTE: Envia cookies
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-
-// export default ApiRequest;
-
-// export const getCSRFToken = () => {
-//   const name = "csrftoken";
-//   const cookies = document.cookie.split(";");
-//   for (const cookie of cookies) {
-//     const [key, value] = cookie.trim().split("=");
-//     if (key === name) return value;
-//   }
-//   return null;
-// };
-
-// ApiRequest.interceptors.request.use((config) => {
-//   const token = getAccessToken();
-//   console.log("Token de acesso no interceptor:", token);
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// ApiRequest.interceptors.response.use(
-//   (res) => res,
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
-//       try {
-//         // Lê o csrftoken do cookie
-//         const csrf = getCookie("csrftoken");
-
-//         const { data } = await ApiRequest.post(
-//           "/token/refresh/",
-//           {},
-//           {
-//             headers: { "X-CSRFToken": csrf },
-//           }
-//         );
-
-//         // Atualiza token global
-//         setAccessToken(data.access);
-
-//         // Reenvia a requisição original
-//         originalRequest.headers.Authorization = `Bearer ${data.access}`;
-//         return ApiRequest(originalRequest);
-//       } catch (err) {
-//         setAccessToken(null);
-//         return Promise.reject(err);
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
-
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-/**
- * ================================
- * 🔐 Controle do Access Token
- * ================================
- */
 let accessToken: string | null = null;
-
+const baseUrl = "http://localhost:8000/api/";
 export const setAccessToken = (token: string | null): void => {
   accessToken = token;
 };
-
 export const getAccessToken = (): string | null => accessToken;
 
-/**
- * ================================
- * 🍪 Funções utilitárias
- * ================================
- */
 export const getCookie = (name: string): string | null => {
   const cookies = document.cookie.split(";").map((c) => c.trim());
   for (const cookie of cookies) {
@@ -99,43 +15,45 @@ export const getCookie = (name: string): string | null => {
   }
   return null;
 };
-
 export const getCSRFToken = (): string | null => getCookie("csrftoken");
 
-/**
- * ================================
- * 🌐 Instância principal do Axios
- * ================================
- */
 const ApiRequest = axios.create({
-  baseURL: "http://localhost:8000/api/",
-  // baseURL: "https://focomail-server.vercel.app/api",
-  withCredentials: true, // ✅ Envia cookies (refresh_token, csrftoken)
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: baseUrl,
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
 });
 
-/**
- * ================================
- * 🚀 Interceptor de Requisição
- * ================================
- */
+const PublicApiRequest = axios.create({
+  baseURL: baseUrl,
+  headers: { "Content-Type": "application/json" },
+});
+
+// 🚀 Interceptor de requisição
 ApiRequest.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-/**
- * ================================
- * 🔁 Interceptor de Resposta (auto refresh)
- * ================================
- */
+export const logOut = async () => {
+  try {
+    const csrf = getCSRFToken();
+    await ApiRequest.post(
+      "logout/",
+      {}, // corpo vazio
+      {
+        headers: {
+          "X-CSRFToken": csrf || "",
+        },
+      }
+    );
+  } catch (err) {
+    // console.error("❌ Erro ao fazer logout:", err);
+  } finally {
+    setAccessToken(null);
+  }
+};
+
 ApiRequest.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -143,45 +61,63 @@ ApiRequest.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Se não há resposta do servidor (ex: offline)
-    if (!error.response) {
-      console.error("❌ Erro de rede:", error);
+    // Se não há resposta (ex: sem internet)
+    if (!error.response) return Promise.reject(error);
+
+    const status = error.response.status;
+    const isRefreshEndpoint = originalRequest.url?.includes("/token/refresh/");
+
+    // Evita loop infinito: nunca tenta renovar se o erro for no próprio /token/refresh/
+    if (isRefreshEndpoint) {
+      // console.warn("⚠️ Erro no endpoint de refresh, logout forçado.");
+      setAccessToken(null);
       return Promise.reject(error);
     }
 
-    // Se o access token expirou e ainda não tentamos renovar
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      const hasRefreshCookie = !!getCookie("csrftoken");
+      if (!hasRefreshCookie) {
+        // console.warn("Nenhum refresh_token encontrado, logout automático.");
+        setAccessToken(null);
+        return Promise.reject(error);
+      }
+
       try {
-        const csrfToken = getCSRFToken();
+        const csrf = getCSRFToken();
 
         const { data } = await ApiRequest.post(
           "/token/refresh/",
           {},
-          {
-            headers: {
-              "X-CSRFToken": csrfToken || "",
-            },
-          }
+          { headers: { "X-CSRFToken": csrf || "" } }
         );
 
-        // Atualiza o token global
+        // Atualiza token e reenvia requisição
         setAccessToken(data.access);
-
-        // Reenvia a requisição original com o novo token
         originalRequest.headers.Authorization = `Bearer ${data.access}`;
         return ApiRequest(originalRequest);
       } catch (refreshError) {
-        console.warn("⚠️ Falha ao renovar access token:", refreshError);
+        // console.warn("⚠️ Falha ao renovar token:", refreshError);
         setAccessToken(null);
         return Promise.reject(refreshError);
       }
     }
 
-    // Outros erros
     return Promise.reject(error);
   }
 );
 
-export default ApiRequest;
+export const fetchCSRFToken = async (): Promise<void> => {
+  try {
+    await ApiRequest.get("get-csrf-token/");
+  } catch (error) {
+    console.error("❌ Falha ao buscar CSRF token:", error);
+  }
+};
+
+const Api = {
+  ApiRequest: ApiRequest,
+  PublicApiRequest: PublicApiRequest,
+};
+export default Api;

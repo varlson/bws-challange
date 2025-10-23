@@ -1,15 +1,17 @@
 import type { PaletteMode } from "@mui/material";
+import type { MeResponse } from "../services/users/users.models";
 
 // Tipo de usuário
 export interface User {
-  name: string;
-  usermame: string;
+  first_name: string;
+  last_name: string;
+  username: string;
   avatarUrl?: string;
 }
 
 export interface AuthContextType {
-  user: User | null;
-  login: (username: string, name: string) => void;
+  user: MeResponse | null;
+  loadLogedUser: () => Promise<void>;
   logout: () => void;
 }
 

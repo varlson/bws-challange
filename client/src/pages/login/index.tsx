@@ -1,5 +1,4 @@
 import React, { useState, type FormEvent } from "react";
-import { useAuth } from "../../hooks/useAuth";
 import {
   Box,
   Button,
@@ -9,18 +8,14 @@ import {
   Paper,
   TextField,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import { Lock, Mail, Visibility, VisibilityOff } from "@mui/icons-material";
-import { authenticate } from "../../services/auth/login";
-import axios from "axios";
 import LoginCodeConfirmation from "../../components/ui/loginCodeConfirmation";
 import useForms from "../../hooks/useForms";
 import FeedBackSnackBar from "../../components/ui/errorHandler";
+import { useLogin } from "../../hooks/useLogin";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const {
     loginModalConfim,
     credential,
@@ -30,15 +25,13 @@ function Login() {
     snackBarControl,
   } = useForms();
 
+  const { login, isLoading } = useLogin();
+
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    // loginModalConfim.handleClickOpen();
-    const response = await authenticate(credential);
-    console.log("response ", response);
-    setIsLoading(false);
+    const response = await login(credential);
     if (response.success) {
       loginModalConfim.handleClickOpen();
     } else {
@@ -47,13 +40,6 @@ function Login() {
     }
   };
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const loginHandle = () => {
-    login("Suleimane Ducure");
-    // navigate("/", { replace: true });
-  };
   return (
     <div className="relative bg-[url('/login.jpg')] bg-cover bg-center h-screen flex items-center justify-center">
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(86,46,172,0.6),rgba(148,136,8,0.413))]"></div>
@@ -175,7 +161,11 @@ function Login() {
           </Paper>
         </div>
       </Paper>
-      <LoginCodeConfirmation email={credential.email} {...loginModalConfim} />
+      <LoginCodeConfirmation
+        goTo="/"
+        email={credential.email}
+        {...loginModalConfim}
+      />
       <FeedBackSnackBar
         handleClose={snackBarControl.closeSnackBarHandle}
         severity="error"

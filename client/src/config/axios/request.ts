@@ -1,11 +1,12 @@
 import axios from "axios";
 import ApiRequest from "./config";
-
+import Api from "./config";
 export type RequestT = {
   method?: "get" | "post";
   data?: unknown;
   url: string;
   params?: Record<string, unknown>;
+  FetchType?: keyof typeof Api;
 };
 
 export type SuccessResponse<T> = { success: true; data: T };
@@ -16,15 +17,14 @@ export async function MakeRequest<TSuccess>({
   url,
   data,
   params,
+  FetchType = "ApiRequest",
 }: RequestT): Promise<SuccessResponse<TSuccess> | ErrorResponse> {
   try {
     const isFormData = data instanceof FormData;
 
     const contentType = isFormData ? "multipart/form-data" : "application/json";
 
-    console.log("content ", isFormData);
-
-    const response = await ApiRequest.request({
+    const response = await Api[FetchType].request({
       url,
       method,
       data,
@@ -36,11 +36,14 @@ export async function MakeRequest<TSuccess>({
 
     return { success: true, data: response.data };
   } catch (error: unknown) {
-    console.log("Error in MakeRequest:", error);
     if (axios.isAxiosError(error)) {
+      let err: string = "";
+      for (const [key, value] of Object.entries(error.response?.data)) {
+        err += err + value + "\n";
+      }
       return {
         success: false,
-        error: error.response?.data.detail ?? error.message,
+        error: error.response?.data.detail ?? err ?? error.message,
       };
     }
     return { success: false, error: "Erro desconhecido" };

@@ -3,7 +3,7 @@ import type { AuthContextType, ThemeContextType } from "../types/types";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: () => {},
+  loadLogedUser: async () => {},
   logout: () => {},
 });
 

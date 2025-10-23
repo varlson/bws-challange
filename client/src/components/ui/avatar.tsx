@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { Avatar as Avt, Fade, Menu } from "@mui/material";
-import { deepOrange } from "@mui/material/colors";
+import { Avatar as Avt, Fade, Menu, Typography } from "@mui/material";
+import { amber } from "@mui/material/colors";
 import MenuItem from "@mui/material/MenuItem";
 
 function Avatar() {
@@ -22,20 +22,26 @@ function Avatar() {
 
   if (!user) return null;
 
-  return user?.avatarUrl ? (
-    <Avt alt="Travis Howard" src={user.avatarUrl} />
+  return user?.profile_picture ? (
+    <Avt alt={user.first_name} src={user.profile_picture} />
   ) : (
     <div>
-      <Avt
-        id="fade-button"
-        aria-controls={open ? "fade-menu" : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? "true" : undefined}
+      <div
         onClick={handleClick}
-        sx={{ bgcolor: deepOrange[500] }}
+        id="fade-button"
+        className=" cursor-pointer bg-primary rounded px-2 py-1 flex items-center gap-x-3"
       >
-        {user.name.at(0)?.toLowerCase()}
-      </Avt>
+        <Typography color="secondary">{user.username}</Typography>
+        <Avt
+          aria-controls={open ? "fade-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          sx={{ bgcolor: amber[500] }}
+        >
+          {user.first_name.at(0)?.toUpperCase()}
+          {user.last_name.at(0)?.toUpperCase()}
+        </Avt>
+      </div>
       <Menu
         id="fade-menu"
         slotProps={{

@@ -1,55 +1,82 @@
-import React, { useState, type FormEvent } from "react";
+import React, { useState, type ChangeEvent, type FormEvent } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { Box, CircularProgress } from "@mui/material";
-import { twoFactprAuthenticate } from "../../services/auth/login";
+import { Alert, Box, CircularProgress, Slide } from "@mui/material";
+import { codeConfirmation } from "../../services/auth/login";
+import { useAuth } from "../../hooks/useAuth";
+import useForms from "../../hooks/useForms";
+import { useNavigate } from "react-router-dom";
 
-export type LoginCodeConfirmationProps = {
+export type CodeConfirmationProps = {
   open: boolean;
   email: string;
   handleClickOpen: () => void;
   handleClose: () => void;
+  goTo: string;
+  showAlertAfter?: string;
+  isAccoutConfirmation?: boolean;
 };
 
-function LoginCodeConfirmation({
+function CodeConfirmation({
   handleClickOpen,
   handleClose,
   open,
   email,
-}: LoginCodeConfirmationProps) {
+  isAccoutConfirmation = false,
+}: CodeConfirmationProps) {
   const [isCheckingCode, setIsCheckingCode] = useState<boolean>(false);
+  const [showMessage, setShowMessage] = useState<boolean>(false);
+  const label = isAccoutConfirmation
+    ? "Para continuar, confirme o email com código enviado para seu email."
+    : "insira código enviado para seu email";
+  const { handleErrorMessageChange, erroeMessage } = useForms();
+  const { loadLogedUser } = useAuth();
+  const navigate = useNavigate();
   const [code, setCode] = useState<string>("");
+
+  const handleCloseClick = (
+    _event: object,
+    reason?: "backdropClick" | "escapeKeyDown"
+  ) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+    handleClose();
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsCheckingCode(true);
-    // handleClose();
-    const response = await twoFactprAuthenticate(email, code);
+    const response = await codeConfirmation(email, code, isAccoutConfirmation);
     console.log("response ", response);
-    setIsCheckingCode(false);
 
     if (response.success) {
       handleClickOpen();
+      await loadLogedUser();
+      setShowMessage(true);
+    } else {
+      handleErrorMessageChange(response.error);
     }
+    setIsCheckingCode(false);
+  };
+
+  const setCodeHandle = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setCode(e.target.value);
+    handleErrorMessageChange("");
   };
   return (
     <>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
-          {isCheckingCode
-            ? "Aguarde um pouco"
-            : "Insira o código enviado para seu email"}
-        </DialogTitle>
+      <Dialog
+        slots={{ transition: Slide }}
+        open={open}
+        onClose={handleCloseClick}
+      >
+        <DialogTitle>{label}</DialogTitle>
         <DialogContent>
-          {/* <DialogContentText>
-            To subscribe to this website, please enter your email address here.
-            We will send updates occasionally.
-          </DialogContentText> */}
-
           {isCheckingCode ? (
             <Box
               className=" w-[400px]"
@@ -58,29 +85,36 @@ function LoginCodeConfirmation({
               <CircularProgress />
             </Box>
           ) : (
-            <form
-              className="w-[400px]"
-              onSubmit={handleSubmit}
-              id="subscription-form"
-            >
-              <TextField
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                autoFocus
-                required
-                margin="dense"
-                id="name"
-                name="email"
-                label="Código de confirmação"
-                type="number"
-                fullWidth
-                variant="standard"
-              />
-            </form>
+            <>
+              <form
+                className="w-[400px]"
+                onSubmit={handleSubmit}
+                id="subscription-form"
+              >
+                <TextField
+                  value={code}
+                  onChange={setCodeHandle}
+                  autoFocus
+                  required
+                  margin="dense"
+                  error={!!erroeMessage}
+                  id="name"
+                  name="email"
+                  label={erroeMessage ?? "Código de confirmação"}
+                  type="number"
+                  fullWidth
+                  variant="standard"
+                />
+              </form>
+            </>
           )}
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="secondary" onClick={handleClose}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleCloseClick}
+          >
             Cancelar
           </Button>
           <Button
@@ -97,4 +131,4 @@ function LoginCodeConfirmation({
   );
 }
 
-export default LoginCodeConfirmation;
+export default CodeConfirmation;

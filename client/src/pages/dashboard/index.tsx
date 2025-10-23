@@ -13,6 +13,15 @@ function Dashboard() {
       <p>Dashboard page</p>
       <Button variant="contained">Contained</Button>
 
+      <Button
+        variant="contained"
+        onClick={() => {
+          console.log(document.cookie);
+        }}
+      >
+        token
+      </Button>
+
       <div className="bg-white p-14">
         <p>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem, delectus

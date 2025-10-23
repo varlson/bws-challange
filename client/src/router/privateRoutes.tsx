@@ -9,7 +9,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 
 export default function PrivateRoutes() {
   const { user } = useAuth();
-  console.log("PrivateRoutes user:", user);
   return user ? (
     <div>
       <Navbar />
@@ -21,12 +20,12 @@ export default function PrivateRoutes() {
         <SideMenu
           label="aa"
           icon={<PersonIcon fontSize="inherit" />}
-          linkto="/"
+          linkto="/my-account"
         />
         <SideMenu
           label="aa"
           icon={<SettingsIcon fontSize="inherit" />}
-          linkto="/"
+          linkto="/my-account"
         />
       </Box>
       <div className="ml-[100px] pt-[75px] p-4">

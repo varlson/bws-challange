@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "authenixApp",
     "rest_framework",
-    "corsheaders"
+    "corsheaders",
+    "rest_framework_simplejwt.token_blacklist"
 ]
 
 MIDDLEWARE = [
@@ -106,6 +107,10 @@ REST_FRAMEWORK = {
     ]
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://seusite.com",  # produção
+]
 
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False  # precisa ser acessível no frontend para envio via header
