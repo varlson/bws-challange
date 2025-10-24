@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 ENV = os.getenv("DJANGO_ENV", "dev") 
-PROD_FRONT_DOMAIN = "https://seusite.com"
+PROD_FRONT_DOMAIN = "https://authenix.com"
 DEV_FRONT_DOMAIN = "http://localhost:5173"
 FRONTEND_DOMAIN = DEV_FRONT_DOMAIN if ENV == "dev" else PROD_FRONT_DOMAIN
 
@@ -17,7 +17,8 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # seu frontend React
-    "https://seusite.com",    # produção
+    "https://authenix.com",    # produção
+    "http://192.168.1.7:5173"
 ]
 CORS_ALLOW_CREDENTIALS = True  # 🔑 permite envio de cookies
 CORS_ALLOW_HEADERS = [
@@ -105,8 +106,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "cabiguineense@gmail.com"
-EMAIL_HOST_PASSWORD = "oval kjpw xouj jntk"
+EMAIL_HOST_USER = "email_aqui"
+EMAIL_HOST_PASSWORD = "senha_aqui"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 REST_FRAMEWORK = {
@@ -119,6 +120,7 @@ REST_FRAMEWORK = {
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://seusite.com",  # produção
+    "http://192.168.1.7:5173/"
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"

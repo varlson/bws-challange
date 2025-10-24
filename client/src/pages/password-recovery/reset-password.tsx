@@ -146,6 +146,7 @@ function PasswordReset() {
         <TextField
           label="Nova Senha"
           variant="outlined"
+          autoComplete="new-password"
           type={showPassword ? "text" : "password"}
           fullWidth
           required
@@ -207,6 +208,7 @@ function PasswordReset() {
 
         <TextField
           label="Confirmar Senha"
+          autoComplete="new-password"
           variant="outlined"
           type={showConfirmPassword ? "text" : "password"}
           fullWidth

@@ -38,12 +38,22 @@ export async function MakeRequest<TSuccess>({
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       let err: string = "";
-      for (const [key, value] of Object.entries(error.response?.data)) {
-        err += err + value + "\n";
+      if (error.response?.data) {
+        for (const [key, value] of Object.entries(error.response?.data)) {
+          err += err + value + "\n";
+        }
+
+        return {
+          success: false,
+          error: err,
+        };
       }
       return {
         success: false,
-        error: error.response?.data.detail ?? err ?? error.message,
+        error:
+          error.response?.data.detail ??
+          error.message ??
+          "Houve um erro interno com servidor",
       };
     }
     return { success: false, error: "Erro desconhecido" };

@@ -23,6 +23,7 @@ function Login() {
     modalControl,
     modalState,
     errorHandlerController,
+    loadingController,
     resetCredential,
     handleCredentialChange,
     credential,
@@ -30,13 +31,15 @@ function Login() {
     snackBarControll,
   } = useHooks();
 
-  const { login, isLoading } = useLogin();
+  const { login } = useLogin();
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    loadingController.starLoadingHandle();
     const response = await login(credential);
+    console.log(response);
     if (response.success) {
       loginModalConfim.handleClickOpen();
     } else {
@@ -46,6 +49,8 @@ function Login() {
       errorHandlerController.errorSetter(response.error);
       snackBarControll.openSnackBarHandle();
     }
+
+    loadingController.stopLoadingHandle();
   };
 
   return (
@@ -113,6 +118,7 @@ function Login() {
                 value={credential.password}
                 onChange={handleCredentialChange}
                 margin="normal"
+                autoComplete="new-password"
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -132,7 +138,7 @@ function Login() {
               />
 
               <Button
-                loading={isLoading}
+                loading={loadingController.isLoading}
                 type="submit"
                 variant="contained"
                 fullWidth

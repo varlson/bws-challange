@@ -281,6 +281,7 @@ function Register() {
                 <TextField
                   label="Senha"
                   variant="outlined"
+                  autoComplete="new-password"
                   fullWidth
                   required
                   type={showPassword ? "text" : "password"}
@@ -307,6 +308,7 @@ function Register() {
                 />
                 <TextField
                   label=" Repita a  senha"
+                  autoComplete="new-password"
                   variant="outlined"
                   fullWidth
                   required
