@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { Lock, Mail, Visibility, VisibilityOff } from "@mui/icons-material";
 import LoginCodeConfirmation from "../../components/ui/loginCodeConfirmation";
-import useForms from "../../hooks/useForms";
 import FeedBackSnackBar from "../../components/ui/errorHandler";
 import { useLogin } from "../../hooks/useLogin";
 import Modal from "../../components/ui/modal";
@@ -19,17 +18,17 @@ import useHooks from "../../hooks/useHooks";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const {
-    loginModalConfim,
-    credential,
-    handleCredentialChange,
-    erroeMessage,
-    handleErrorMessageChange,
-    snackBarControl,
-    resetCredential,
-  } = useForms();
 
-  const { modalControl, modalState } = useHooks();
+  const {
+    modalControl,
+    modalState,
+    errorHandlerController,
+    resetCredential,
+    handleCredentialChange,
+    credential,
+    loginModalConfim,
+    snackBarControll,
+  } = useHooks();
 
   const { login, isLoading } = useLogin();
 
@@ -44,8 +43,8 @@ function Login() {
       modalControl(
         response.error.startsWith("Você não tem permissão") ? "open" : "close"
       );
-      handleErrorMessageChange(response.error);
-      snackBarControl.openSnackBarHandle();
+      errorHandlerController.errorSetter(response.error);
+      snackBarControll.openSnackBarHandle();
     }
   };
 
@@ -82,12 +81,11 @@ function Login() {
             </Link>
 
             <Box component="form" onSubmit={handleSubmit}>
-              {/* Campo de Email */}
               <TextField
                 label="Email"
                 variant="outlined"
                 name="email"
-                error={!!erroeMessage}
+                error={!!errorHandlerController.error}
                 fullWidth
                 required
                 value={credential.email}
@@ -104,14 +102,13 @@ function Login() {
                 }}
               />
 
-              {/* Campo de Senha */}
               <TextField
                 label="Senha"
                 variant="outlined"
                 name="password"
                 fullWidth
                 required
-                error={!!erroeMessage}
+                error={!!errorHandlerController.error}
                 type={showPassword ? "text" : "password"}
                 value={credential.password}
                 onChange={handleCredentialChange}
@@ -134,7 +131,6 @@ function Login() {
                 }}
               />
 
-              {/* Botão */}
               <Button
                 loading={isLoading}
                 type="submit"
@@ -151,8 +147,8 @@ function Login() {
               </Button>
             </Box>
 
-            {/* Link extra */}
             <Link
+              href="/password-recovery"
               variant="body2"
               align="center"
               sx={{ mt: 2, color: "text.secondary" }}
@@ -178,7 +174,7 @@ function Login() {
       <Modal
         children={
           <Alert severity="error">
-            {erroeMessage + " Tenta novamente mais tarde."}
+            {errorHandlerController.error + " Tenta novamente mais tarde."}
           </Alert>
         }
         state={modalState}
@@ -188,10 +184,10 @@ function Login() {
         oncloseAction={resetCredential}
       />
       <FeedBackSnackBar
-        handleClose={snackBarControl.closeSnackBarHandle}
+        handleClose={snackBarControll.closeSnackBarHandle}
         severity="error"
-        open={snackBarControl.openSnack}
-        message={erroeMessage}
+        open={snackBarControll.openSnack}
+        message={errorHandlerController.error ?? ""}
       />
     </div>
   );

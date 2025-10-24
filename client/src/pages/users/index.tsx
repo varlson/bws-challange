@@ -20,9 +20,9 @@ import {
   Phone as PhoneIcon,
   Business as BusinessIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { mockUsers } from "../../constants/data";
+import { formatDate, getInitials, getRoleLabel } from "./helper";
 
 type ListusersResponse = {
   id: string;
@@ -36,29 +36,6 @@ type ListusersResponse = {
   is_email_verified: boolean;
   created_at: string;
   updated_at: string;
-};
-
-const getRoleLabel = (role: number) => {
-  const roles = {
-    0: { label: "Admin", color: "#a161eb" },
-    1: { label: "Gerente", color: "#feb602" },
-    2: { label: "Usuário", color: "#757575" },
-  };
-  return (
-    roles[role as keyof typeof roles] || {
-      label: "Desconhecido",
-      color: "#757575",
-    }
-  );
-};
-
-const getInitials = (username: string) => {
-  return username
-    .split(".")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 };
 
 export default function UserCards() {
@@ -78,14 +55,6 @@ export default function UserCards() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Typography
@@ -100,7 +69,7 @@ export default function UserCards() {
           const roleInfo = getRoleLabel(user.role);
 
           return (
-            <Grid item xs={12} sm={6} md={4} key={user.id}>
+            <Grid key={user.id}>
               <Card
                 sx={{
                   height: "100%",

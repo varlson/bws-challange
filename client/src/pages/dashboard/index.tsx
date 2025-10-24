@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Container,
-  Grid,
+  // Grid,
   Paper,
   Typography,
   Card,
@@ -17,39 +17,13 @@ import {
   ListItemAvatar,
   IconButton,
   Toolbar,
+  Grid,
 } from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
 import { projects, recentActivities, stats } from "../../constants/data";
+import { getPriorityColor, getStatusColor } from "./helper";
 
-export type ColorStatus = "Em Progresso" | "Revisão" | "Concluído";
-export type ColorPriority = "Alta" | "Média" | "Baixa";
 function Dashboard() {
-  const getStatusColor = (status: ColorStatus) => {
-    switch (status) {
-      case "Em Progresso":
-        return "primary";
-      case "Revisão":
-        return "warning";
-      case "Concluído":
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
-  const getPriorityColor = (priority: ColorPriority) => {
-    switch (priority) {
-      case "Alta":
-        return "error";
-      case "Média":
-        return "warning";
-      case "Baixa":
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
   return (
     <div className="">
       <Toolbar />
@@ -103,14 +77,14 @@ function Dashboard() {
         </Grid>
 
         <Grid container spacing={3} sx={{ mt: 1 }}>
-          <Grid item xs={12} md={8}>
+          <Grid>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
                 Projetos Ativos
               </Typography>
               <Grid container spacing={2}>
                 {projects.map((project) => (
-                  <Grid item xs={12} key={project.id}>
+                  <Grid key={project.id}>
                     <Card variant="outlined">
                       <CardContent>
                         <Box
@@ -202,7 +176,7 @@ function Dashboard() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid>
             <Paper sx={{ p: 3, height: "100%" }}>
               <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
                 Atividades Recentes

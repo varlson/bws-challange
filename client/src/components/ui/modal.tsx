@@ -46,7 +46,6 @@ export default function Modal({
           transition: Transition,
         }}
         keepMounted
-        onClose={stateControl}
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle color="textPrimary">{title}</DialogTitle>

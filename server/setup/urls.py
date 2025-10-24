@@ -20,6 +20,7 @@
 
 # urls.py
 from django.contrib import admin
+from authenixApp.views import PasswordResetRequestView, PasswordResetConfirmView
 
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -54,5 +55,10 @@ urlpatterns = [
     path('api/resend-registration-code/', UserViewSet.as_view({'post': 'resend_registration_code'}), name='resend_registration_code'),
     path('api/me/', UserViewSet.as_view({'get': 'me'}), name='user-me'),
     path('api/confirm-email/<uuid:token>/', ConfirmEmailView.as_view(), name='confirm_email'),
+    path('api/password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('api/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
 ]
+
+
+

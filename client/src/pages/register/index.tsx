@@ -1,4 +1,4 @@
-import React, { useEffect, useState, type ChangeEvent } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -23,9 +23,7 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import type { CompanyResponse } from "../../services/company/company.model";
 import FeedBackSnackBar from "../../components/ui/errorHandler";
-import useForms from "../../hooks/useForms";
 import Modal from "../../components/ui/modal";
 import useHooks from "../../hooks/useHooks";
 import { CreateUser } from "../../services/users/users.services";
@@ -46,6 +44,8 @@ function Register() {
     loadCompanies,
     modalControl,
     modalState,
+    snackBar,
+    errorHandlerController,
   } = useHooks();
 
   useEffect(() => {
@@ -57,9 +57,6 @@ function Register() {
   const navigateToLoginPage = () => {
     navigate("/login", { replace: true });
   };
-
-  const { snackBarControl, erroeMessage, handleErrorMessageChange } =
-    useForms();
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
@@ -97,8 +94,8 @@ function Register() {
     const resp = await CreateUser(user);
 
     if (!resp.success) {
-      handleErrorMessageChange(resp.error);
-      snackBarControl.openSnackBarHandle();
+      errorHandlerController.errorSetter(resp.error);
+      snackBar.snackBarController("open");
     } else {
       modalControl("open");
     }
@@ -365,10 +362,10 @@ function Register() {
         </div>
       </Paper>
       <FeedBackSnackBar
-        handleClose={snackBarControl.closeSnackBarHandle}
+        handleClose={() => snackBar.snackBarController("open")}
         severity="error"
-        open={snackBarControl.openSnack}
-        message={erroeMessage}
+        open={snackBar.snackbarState}
+        message={errorHandlerController.error ?? ""}
       />
 
       <Modal {...modalParams[current]} />

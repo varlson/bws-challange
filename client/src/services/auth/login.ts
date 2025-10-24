@@ -46,3 +46,23 @@ export const accountVerification = async (token: string) => {
 // export  const resendCodehandler = await () => {
 //   return await MakeRequest<>({url})
 // };
+
+export const requestPasswordRecovery = async (email: string) => {
+  return await MakeRequest<{ detail: string }>({
+    data: { email },
+    url: "password-reset/request/",
+    method: "post",
+  });
+};
+
+export const resetPassword = async (
+  newPassword: string,
+  uid: string,
+  token: string
+) => {
+  return await MakeRequest<{ detail: string }>({
+    data: { password: newPassword, uid, token },
+    url: "password-reset/confirm/",
+    method: "post",
+  });
+};

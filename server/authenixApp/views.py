@@ -27,6 +27,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from django.views.decorators.csrf import csrf_protect
 
 
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+
+
+
 
 class CustomTokenRefreshView(TokenRefreshView):
     """Refresh token protegido com CSRF"""
@@ -555,3 +561,75 @@ def me(self, request):
     """Retorna dados do usuário logado"""
     serializer = self.get_serializer(request.user)
     return Response(serializer.data)
+
+
+
+
+
+class PasswordResetRequestView(APIView):
+    """Etapa 1 — Solicitar recuperação de senha"""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            return Response({"detail": "E-mail é obrigatório."}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Não revelar se o e-mail existe — prática segura
+            return Response({"detail": "Se o e-mail existir, você receberá instruções."}, status=200)
+
+        if not user.is_active:
+            return Response({"detail": "Conta desativada."}, status=403)
+
+        # Gera token de redefinição
+        token = default_token_generator.make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password?uid={uidb64}&token={token}"
+
+        subject = "Recuperação de senha"
+        message = f"""
+        Olá {user.username},
+
+        Recebemos um pedido para redefinir sua senha.
+        Clique no link abaixo para definir uma nova senha:
+        {reset_link}
+
+        Este link expira em 1 hora. Se você não fez essa solicitação, ignore este e-mail.
+        """
+
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+        return Response({"detail": "Se o e-mail existir, você receberá instruções."}, status=200)
+
+
+
+class PasswordResetConfirmView(APIView):
+    """Etapa 2 — Confirmar redefinição de senha"""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        uidb64 = request.data.get("uid")
+        token = request.data.get("token")
+        new_password = request.data.get("password")
+
+        if not all([uidb64, token, new_password]):
+            return Response({"detail": "Dados incompletos."}, status=400)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({"detail": "Link inválido."}, status=400)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"detail": "Token inválido ou expirado."}, status=400)
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        return Response({"detail": "Senha redefinida com sucesso!"}, status=200)

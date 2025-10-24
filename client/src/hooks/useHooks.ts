@@ -7,6 +7,7 @@ import React, {
 import type { CompanyResponse } from "../services/company/company.model";
 import { listCompanies } from "../services/company/company.services";
 import type { CreateUserRequest } from "../services/users/users.models";
+import type { Credentials } from "../types/types";
 
 function useHooks() {
   //Error Message
@@ -86,12 +87,70 @@ function useHooks() {
     }));
   };
 
+  const [snackbarState, setSnackbarState] = useState<boolean>(false);
+  const snackBarController = (action: "open" | "close") => {
+    setSnackbarState(action == "close" ? false : true);
+  };
+
+  const snackBar = {
+    snackbarState,
+    snackBarController,
+  };
+
+  const [credential, setCredential] = useState<Credentials>({
+    email: "",
+    password: "",
+  });
+
+  const resetCredential = () => {
+    setCredential({ email: "", password: "" });
+  };
+
+  const handleCredentialChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCredential((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const resetUser = () => {
     setUser(emptyUser);
   };
 
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const loginModalConfim = { open, handleClickOpen, handleClose };
+
+  const [openSnack, setOpenSnack] = useState<boolean>(false);
+
+  const openSnackBarHandle = () => {
+    setOpenSnack(true);
+  };
+
+  const closeSnackBarHandle = () => {
+    setOpenSnack(false);
+  };
+
+  const snackBarControll = {
+    openSnack,
+    openSnackBarHandle,
+    closeSnackBarHandle,
+  };
+
   return {
     modalControl,
+    loginModalConfim,
     modalState,
     loadingController,
     companies,
@@ -101,6 +160,11 @@ function useHooks() {
     setUserHandle,
     resetUser,
     setUser,
+    snackBar,
+    resetCredential,
+    handleCredentialChange,
+    credential,
+    snackBarControll,
   };
 }
 

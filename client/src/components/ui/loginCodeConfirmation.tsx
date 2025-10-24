@@ -5,10 +5,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { Box, CircularProgress, Link, Slide } from "@mui/material";
+import { Box, CircularProgress, Slide } from "@mui/material";
 import { codeConfirmation } from "../../services/auth/login";
 import { useAuth } from "../../hooks/useAuth";
-import useForms from "../../hooks/useForms";
 import useHooks from "../../hooks/useHooks";
 
 export type CodeConfirmationProps = {
@@ -29,11 +28,10 @@ function CodeConfirmation({
   isAccoutConfirmation = false,
 }: CodeConfirmationProps) {
   const [isCheckingCode, setIsCheckingCode] = useState<boolean>(false);
-  const { loadingController } = useHooks();
+  const { errorHandlerController } = useHooks();
   const label = isAccoutConfirmation
     ? "Para continuar, confirme o email com código enviado para seu email."
     : "insira código enviado para seu email";
-  const { handleErrorMessageChange, erroeMessage } = useForms();
   const { loadLogedUser } = useAuth();
   const [code, setCode] = useState<string>("");
 
@@ -55,7 +53,7 @@ function CodeConfirmation({
       handleClickOpen();
       await loadLogedUser();
     } else {
-      handleErrorMessageChange(response.error);
+      errorHandlerController.errorSetter(response.error);
     }
     setIsCheckingCode(false);
   };
@@ -64,7 +62,7 @@ function CodeConfirmation({
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setCode(e.target.value);
-    handleErrorMessageChange("");
+    errorHandlerController.errorSetter("");
   };
   return (
     <>
@@ -95,10 +93,12 @@ function CodeConfirmation({
                   autoFocus
                   required
                   margin="dense"
-                  error={!!erroeMessage}
+                  error={!!errorHandlerController.error}
                   id="name"
                   name="email"
-                  label={erroeMessage ?? "Código de confirmação"}
+                  label={
+                    errorHandlerController.error ?? "Código de confirmação"
+                  }
                   type="number"
                   fullWidth
                   variant="standard"
@@ -110,15 +110,6 @@ function CodeConfirmation({
         <DialogActions
           sx={{ display: "flex", justifyContent: "space-between" }}
         >
-          {/* <Button
-            loading={loadingController.isLoading}
-            variant="text"
-            color="secondary"
-            onClick={resendCodehandler}
-          >
-            Reenviar o código
-          </Button> */}
-
           <Button
             variant="outlined"
             color="secondary"
